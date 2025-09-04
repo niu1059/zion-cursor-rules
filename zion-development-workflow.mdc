@@ -1,0 +1,409 @@
+---
+alwaysApply: false
+description: Zion代码组件15步开发执行流程，包含环境配置、项目管理、代码实现和发布部署
+---
+
+# Zion 代码组件开发执行流程
+
+## 🎯 流程目标
+
+自动化完成从环境验证到发布上线的完整开发流程，确保组件符合Zion平台规范。
+
+## 🛡️ 核心约束
+
+### 目录唯一性原则
+- 所有开发活动必须在Zion项目目录内进行
+- 禁止跨目录、跨项目操作
+- 不能擅自添加模拟数据或精简功能
+
+## 🔧 15步标准执行流程
+
+### Step 1: 环境验证与登录流程
+
+**目标**: 验证开发环境并确保登录状态
+
+**关键动作**:
+- 系统环境检测（Windows/macOS）
+- Node.js 及 npm 验证与安装（v20.19.4）
+- Functorz CLI 验证与安装
+- tsx 验证与安装
+- functorz 登录验证
+
+**核心代码**:
+```typescript
+// 系统检测
+const platform = os.platform();
+const isWindows = platform === 'win32';
+const isMac = platform === 'darwin';
+
+// Node.js验证
+const nodeVersion = await execCommand('node --version');
+if (!nodeVersion.includes('v20.19.4')) {
+  await installNode();
+}
+
+// 设置npm镜像
+await execCommand('npm config set registry https://registry.npmmirror.com/');
+
+// 验证tsx（先验证，未安装再安装）
+  try {
+    await execCommand('npx tsx --version');
+    console.log(' tsx已安装');
+  } catch (error) {
+    console.log(' tsx未安装，开始安装...');
+    await execCommand('npm i -g tsx');
+    console.log(' tsx安装完成')
+
+// 验证functorz CLI（先验证，未安装再安装）
+  try {
+    await execCommand('npx functorz -h');
+    console.log(' Functorz CLI已安装');
+  } catch (error) {
+    console.log(' Functorz CLI未安装，开始安装...');
+    await execCommand('npm i -g functorz');
+    console.log(' Functorz CLI安装完成');
+  }
+
+// 登录验证
+await execCommand(`npx functorz signin ${email} ${password}`);
+```
+
+### Step 2: 项目状态检查与初始化流程
+
+**目标**: 智能检测项目状态，决定是否创建新项目
+
+**关键动作**:
+- 检查当前目录是否有效Zion项目
+- 必须要询问用户意愿是否是新建项目创建组件还是在当前的项目内创建组件（检测当前目前为有效zion 项目时）
+- 若不存在有效 zion 项目目录，则直接新建
+- 执行项目创建或切换目录
+
+**核心代码**:
+```typescript
+// 项目状态检查
+const hasPackageJson = fs.existsSync('./package.json');
+const hasSrcDir = fs.existsSync('./src');
+const hasComponentsDir = fs.existsSync('./src/components');
+const isValidZionProject = hasPackageJson && hasSrcDir && hasComponentsDir;
+
+if (isValidZionProject) {
+  const userChoice = await askUser('请选择：1.当前项目创建组件 2.新建项目');
+  if (userChoice === '2') {
+    const projectName = `${componentName.toLowerCase()}-component`;
+    await execCommand(`npx functorz create ${projectName}`);
+    process.chdir(`./${projectName}`);
+  }
+} else {
+  // 直接创建新项目
+  const projectName = `${componentName.toLowerCase()}-component`;
+  await execCommand(`npx functorz create ${projectName}`);
+  process.chdir(`./${projectName}`);
+}
+```
+
+### Step 3: 依赖安装检查流程
+
+**目标**: 安装项目依赖并验证环境
+
+**关键动作**:
+- 确认在Zion项目目录内
+- 检查package-lock.json
+- 条件性执行npm install
+
+**核心代码**:
+```typescript
+// 验证项目环境
+if (!fs.existsSync('./package.json')) {
+  throw new Error('当前目录不是有效的Zion项目目录');
+}
+
+// 条件性安装依赖
+const hasLockFile = fs.existsSync('package-lock.json');
+if (!hasLockFile) {
+  await execCommand('npm install');
+}
+```
+
+### Step 4: 通过 Zion MCP 获取项目配置流程
+
+**目标**: 基于开发计划判断是否执行此步骤，若执行则获取 token 和项目schema，并保存在 zion 项中
+
+**关键动作**:
+- 检查.zion/schema.json是否存在
+- 处理认证token
+- 获取项目列表和schema
+- 存储配置信息
+
+**核心代码**:
+```typescript
+const schemaPath = path.join(projectPath, '.zion', 'schema.json');
+const credentialsPath = path.join(projectPath, '.zion', 'zion_credentials.json');
+
+// 获取项目列表和schema
+const projects = await mcp_zion_get_projects({ token: authToken });
+const schema = await mcp_zion_get_schema({ 
+  token: authToken, 
+  projectExId: selectedProjectId 
+});
+```
+
+### Step 5: 需求解析确认流程
+
+**目标**: 明确组件开发目标
+
+**关键动作**:
+- 解析用户需求
+- 确定组件名称、功能、props结构
+- 验证需求与schema匹配性
+
+
+## 🛡️ 工作目录管理
+
+### 核心原则
+- **每次文件操作前验证目录**
+- **使用绝对路径避免相对路径问题**
+- **显示当前状态让用户确认**
+
+### 验证步骤
+```bash
+# 在每次文件操作前执行
+pwd && ls -la package.json src/
+```
+
+### 文件操作规范
+- 使用绝对路径：`/完整路径/src/components/组件名/文件名`
+- 避免相对路径：`./src/components/组件名/文件名`
+
+
+### Step 6: 文件目录生成流程
+
+**目标**: 在Zion项目目录内生成标准化组件目录结构
+
+**关键动作**:
+- 在[Zion项目目录]/src/components/[组件名]/下创建目录
+- 生成主文件、样式、导出文件
+- 创建GraphQL目录
+
+**核心代码**:
+```typescript
+// 确保在 Zion 项目目录内
+process.chdir(projectPath);
+
+// 创建组件目录结构
+const componentDir = path.join(projectPath, 'src', 'components', componentName);
+fs.mkdirSync(componentDir, { recursive: true });
+
+// 创建主要文件
+const componentFile = path.join(componentDir, `${componentName}.tsx`);
+const styleFile = path.join(componentDir, 'style.module.scss');
+const indexFile = path.join(componentDir, 'index.ts');
+const graphqlDir = path.join(componentDir, 'graphql');
+
+fs.mkdirSync(graphqlDir, { recursive: true });
+```
+
+### Step 7: 代码开发流程
+
+**唯一工作目录**：[Zion项目目录]/src/components/[组件名]/
+**目标**: 在工作目录内完成组件核心逻辑开发
+
+**关键动作**:
+- 确保在 zion 项目目录内执行
+- 实现三段式interface（PropData、StateData、Event、Props）
+- 遵循导出规范，禁止export default
+- 使用useAppContext获取ctx
+- 媒体上传字段命名*_id
+- React约束：显式导入React
+
+**核心规范**:
+```typescript
+// 确保在正确目录
+process.chdir(projectPath);
+
+// 三段式类型导出
+export interface UserInfoPropData { name: string; age: number; }
+export interface UserInfoStateData { loading: State<boolean>; }
+export interface UserInfoEvent { onConfirm?: EventHandler; }
+export interface UserInfoProps {
+  propData: UserInfoPropData;
+  propState: UserInfoStateData;
+  event: UserInfoEvent;
+}
+
+// 组件实现
+import React from 'react';
+import { useAppContext } from 'zvm-code-context';
+
+export const UserInfo = (props: UserInfoProps) => {
+  const ctx = useAppContext();
+  // 组件逻辑
+};
+```
+
+### Step 8: 代码组件集成流程
+
+**目标**: 将组件按规范导出到主入口
+
+**关键动作**:
+- 主入口以对象方式导出组件
+- 在src/App.tsx中引入并渲染组件
+
+**核心代码**:
+```typescript
+// src/components/index.ts
+import { UserInfo } from './UserInfo';
+export default { UserInfo };
+```
+
+### Step 9: 代码合规校验与自检流程
+
+**目标**: 检测代码规范合规性
+
+**关键动作**:
+- 代码风格和语法检查
+- 类型检查
+- 自动修正问题
+
+**核心命令**:
+```bash
+npm run lint
+```
+
+### Step 10: 代码组件打包流程
+
+**目标**: 本地构建组件
+
+**核心命令**:
+```bash
+npm run build --verbose
+```
+
+### Step 11: 本地预览测试
+
+**目标**: 在 zion项目目录内执行预览核心命令，每次执行确保执行成功
+
+**关键动作**:
+- 验证package.json包含preview脚本
+- 执行预览核心命令（端口6326-6335）
+- 用户报错修复流程
+
+**核心命令**:
+```bash
+npm run build --verbose
+npm run preview
+```
+
+**修复流程**: 错误 → 修复代码 → 重新构建 → 执行预览指令 → 等待用户验证
+
+### Step 12: 代码组件首次发布
+
+**目标**: 用户确认后执行测试发布
+
+**前置条件**: 完成Step 11且用户确认无问题
+
+**核心命令**:
+```bash
+# 条件性重新打包
+npm run build
+# 测试发布
+npx functorz publish --verbose
+```
+
+### Step 13: 文档补全流程
+
+**目标**: 自动生成README.md保存在 /zion 项目/src/components/组件名/文件中，若已存在则递增新的内容
+
+**包含内容**:
+- 组件简介、集成步骤
+- 属性与事件说明、用法示例
+- 平台配置、GraphQL说明
+- 媒体上传说明、样式自定义
+- 常见问题、版本维护
+
+### Step 14: 平台预览调试流程
+
+**目标**: 提示用户在 zion 编辑器内调试代码组件，并执行预览命令，问题修复后也需要确保预览命令执行成功
+
+**关键动作**:
+- 提示用户在Zion编辑器中添加组件
+- 执行打包和预览核心命令（端口6326-6335）
+- 用户报错修复流程（用户未确认绝对禁止自动发布）
+
+**修复流程**: 分析错误 → 修复代码 → 重新构建 → 执行预览指令 → 等待用户验证
+**核心命令**:
+```bash
+npm run build --verbose
+npm run preview
+
+
+### Step 15: 发布上线流程
+
+**目标**: 正式发布组件
+
+**前置条件**: Step 14用户确认无问题
+
+**核心命令**:
+```bash
+# 升级版本号（如有冲突）
+npm version patch
+# 重新构建
+npm run build
+# 正式发布
+npx functorz publish --verbose
+```
+
+## 🔄 异常处理机制
+
+### 常见异常类型及处理
+
+1. **环境异常**: 自动重新登录，网络重试3次
+2. **项目异常**: 自动重命名，最多尝试5次
+3. **代码异常**: 自动修复语法和类型错误
+4. **发布异常**: 自动升级版本号重试
+
+### 上下文总结机制
+
+每步执行后记录状态信息：
+```typescript
+const recordStep = (stepNumber: number, stepName: string, status: string) => {
+  const stepRecord = {
+    stepNumber,
+    stepName,
+    status,
+    timestamp: new Date().toISOString()
+  };
+  fs.appendFileSync('步骤总结.md', generateStepSummary(stepRecord));
+};
+```
+
+## ⚠️ 关键约束提醒
+
+### 预览指令规范
+- **禁止**: 使用`npx vite preview`或`vite preview`预览指令
+- **必须**: 在项目目录内使用`npm run preview`
+- **端口**: 限定在6326-6335范围
+- **前置**: 必须先执行`npm run build`
+
+### 常见问题处理
+1. **React未定义**: 确保每个.tsx文件导入React，或检查vite.config.ts中的external配置是否正确
+2. **preview脚本缺失**: 确保在正确项目目录执行
+3. **版本冲突**: 自动执行npm version patch
+4. **GraphQL字段错误**: 严格对齐schema字段名
+
+### Vite配置规范
+**构建配置要求**:
+- **preview模式兼容**: 移除`rollupOptions.external`配置，确保React正常打包
+- **推荐配置**:
+```typescript
+build: {
+  rollupOptions: {
+    // 移除external配置，让React正常打包
+    plugins: [],
+  },
+}
+```
+**原因**: preview模式下外部依赖无法正确提供，导致React未定义错误
+
+---
+
+**注意**: 本文件专注开发执行流程，代码规范和GraphQL详情请参考对应专业文件。

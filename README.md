@@ -1,6 +1,6 @@
 # Zion Cursor Rules
 
-Zion 平台代码组件开发的 Cursor AI 规则库，提供完整的开发流程指导和代码规范。
+Zion 平台开发的用Cursor生成 Zion 代码组件的规则库，提供完整的开发流程指导和代码规范。
 
 ## 📋 规则文件说明
 
@@ -18,12 +18,8 @@ Zion 平台代码组件开发的 Cursor AI 规则库，提供完整的开发流�
 
 ### 1. 安装规则到 Cursor
 
-将规则文件复制到您的 Cursor 项目的 `.cursor/rules/` 目录：
+将规则文件复制到您的 Cursor 项目的 `.cursor/rules/` 目录
 
-```bash
-# 复制所有规则文件
-cp *.mdc /path/to/your/project/.cursor/rules/
-```
 
 ### 2. 使用规则
 
@@ -86,11 +82,6 @@ cp *.mdc /path/to/your/project/.cursor/rules/
 2. 保持文件格式和结构一致
 3. 测试规则是否正常工作
 
-## 📝 版本历史
-
-- **v3.0** - 添加图表统计类 ECharts 支持
-- **v2.0** - 完善需求收集流程
-- **v1.0** - 初始版本发布
 
 ## 🤝 贡献指南
 
@@ -114,4 +105,4 @@ cp *.mdc /path/to/your/project/.cursor/rules/
 
 ---
 
-**注意**: 这些规则专为 Zion 平台代码组件开发设计，请确保在正确的环境中使用。
+**注意**: 这些规则专为用 Zion 平台代码组件开发设计，请确保在正确的环境中使用。

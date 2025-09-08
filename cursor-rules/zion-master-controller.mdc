@@ -82,40 +82,6 @@ alwaysApply: true
 执行14步标准开发流程
 ```
 
-## 🔍 智能项目检测机制
-
-### 项目状态检查逻辑
-
-```typescript
-// 检查当前目录项目状态
-const hasPackageJson = fs.existsSync('./package.json');
-const hasSrcDir = fs.existsSync('./src');
-const hasComponentsDir = fs.existsSync('./src/components');
-
-// 判断是否为有效的Zion项目
-const isValidZionProject = hasPackageJson && hasSrcDir && hasComponentsDir;
-
-if (isValidZionProject) {
-  console.log('✅ 检测到现有Zion项目');
-  
-  // 询问用户意愿
-  const userChoice = await askUser(`
-检测到当前目录已有Zion项目，请选择：
-1. 在当前项目下创建新组件
-2. 新建项目并创建组件
-
-请输入选择 (1 或 2):`);
-
-  // 根据用户选择执行相应操作
-  if (userChoice === '1') {
-    // 在当前项目下创建组件
-  } else if (userChoice === '2') {
-    // 创建新项目
-  }
-} else {
-  // 直接创建新项目
-}
-```
 
 ## 🛡️ 核心约束
 
@@ -131,11 +97,11 @@ if (isValidZionProject) {
 
 ## 🔄 异常处理机制
 
-### 异常恢复策略
-- **环境异常**: 自动重新登录，网络重试3次
-- **项目异常**: 自动重命名，最多尝试5次
-- **代码异常**: 结合代码组件规范自动修复语法和类型错误
-- **发布异常**: 根据报错结果若提示版本重复则升级版本号，若出现其他报错进行修复
+### 常见异常类型及处理
+1. **环境异常**: 自动重新登录，网络重试3次
+2. **项目异常**: 自动重命名，最多尝试5次
+3. **代码异常**: 结合代码组件规范自动修复语法和类型错误
+4. **发布异常**: 根据报错结果若提示版本重复则升级版本号，若出现其他报错进行修复
 
 ### 上下文总结
 每个步骤执行后记录状态，支持断点续跑和错误恢复。

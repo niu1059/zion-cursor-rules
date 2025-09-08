@@ -185,11 +185,13 @@ const user = ctx.globalData.currentUser;
 1. **禁止在依赖数组中包含state变量**
 2. **依赖数组只能包含**: ctx、固定配置值、props传入的固定值
 3. **数据加载函数必须接受参数**
+4. **禁止使用对象依赖**（如propData、propState、event）导致无限渲染
 
 ### useEffect规范
 1. **初始化数据加载必须使用空依赖数组**
 2. **状态同步useEffect必须使用空依赖数组**
 3. **禁止直接依赖propState**
+4. **只使用基本类型依赖**（如isListening、isSupported）
 
 ### 标准模式
 ```typescript
@@ -206,6 +208,22 @@ const loadData = useCallback(async (page: number = 1, keyword?: string) => {
 useEffect(() => {
   loadData(1); // 只在组件挂载时执行
 }, []); // 空依赖数组
+
+// ✅ 正确：只使用基本类型依赖
+useEffect(() => {
+  // 逻辑
+}, [isListening, isSupported]); // 基本类型
+
+// ❌ 错误：使用对象依赖
+useEffect(() => {
+  // 逻辑
+}, [propData, propState, event]); // 对象依赖导致无限渲染
+
+// 必要时使用eslint-disable
+useCallback(() => {
+  // 逻辑
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [isListening]);
 ```
 
 ## 📋 接口定义规范
@@ -265,6 +283,50 @@ import React from 'react';
 - 解决: 确保每个.tsx文件顶部导入React
 - 确保package.json中React为dependencies而非devDependencies
 
+## 🛡️ 安全检查规范
+
+### propState访问安全
+```typescript
+// ✅ 正确：所有propState访问必须有null检查
+const value = propState.transcript ? (propState.transcript.get() || '') : '';
+const length = value.length; // 安全访问
+
+// ❌ 错误：直接访问可能为null的值
+const value = propState.transcript.get(); // 可能返回null
+const length = value.length; // 可能访问null的length
+```
+
+### 外部API调用安全
+```typescript
+// ✅ 正确：API结果必须检查
+if (!result || !result.length) return;
+for (let i = 0; i < result.length; i++) {
+  if (!result[i]) continue;
+  // 安全处理
+}
+
+// ❌ 错误：直接访问API结果
+for (let i = 0; i < result.length; i++) {
+  const item = result[i][0]; // 可能访问null
+}
+```
+
+## 🎨 样式系统规范
+
+### CSS Modules使用规范
+```typescript
+// ✅ 正确：导入和使用
+import styles from './style.module.scss';
+<div className={styles['container']}>
+<div className={`${styles['button']} ${isActive ? styles.active : ''}`}>
+
+// ❌ 错误：直接使用类名
+import './style.module.scss';
+<div className="container">
+```
+
+**注意**: 样式文件必须使用`style.module.scss`命名，确保CSS Modules正确工作。
+
 ## ✅ 发布前检查清单
 
 ### 代码质量检查
@@ -273,7 +335,7 @@ npx tsc --noEmit        # 类型检查
 npm run lint            # 代码规范检查
 npm run build           # 构建检查
 npm version patch       # 版本管理
-npx functorz publish --verbose  # 发布
+functorz publish --verbose  # 发布
 ```
 
 ### 强制检查项
@@ -285,6 +347,10 @@ npx functorz publish --verbose  # 发布
 - [ ] 所有useEffect初始化都使用空依赖数组
 - [ ] 每个.tsx文件都导入了React
 - [ ] 构建和类型检查无错误
+- [ ] **所有propState访问都有null检查**
+- [ ] **所有外部API调用都有安全检查**
+- [ ] **CSS Modules使用正确**
+- [ ] **React Hooks依赖数组设置正确**
 
 ---
 

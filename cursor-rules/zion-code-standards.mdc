@@ -347,10 +347,10 @@ functorz publish --verbose  # 发布
 - [ ] 所有useEffect初始化都使用空依赖数组
 - [ ] 每个.tsx文件都导入了React
 - [ ] 构建和类型检查无错误
-- [ ] **所有propState访问都有null检查**
-- [ ] **所有外部API调用都有安全检查**
-- [ ] **CSS Modules使用正确**
-- [ ] **React Hooks依赖数组设置正确**
+- [ ] 所有propState访问都有null检查
+- [ ] 所有外部API调用都有安全检查
+- [ ] CSS Modules使用正确
+- [ ] React Hooks依赖数组设置正确
 
 ---
 

@@ -63,9 +63,10 @@ import { EventHandler, State } from 'zvm-code-context';
 
 // 三段式类型必须在主文件导出
 export interface UserInfoPropData {
-  name: string;
-  age: number;
-  isActive: boolean;
+  name: string;              // 必需：核心数据
+  age: number;               // 必需：核心数据
+  avatar?: string;           // 可选：有默认值
+  isActive?: boolean;        // 可选：有默认值true
 }
 
 export interface UserInfoStateData {
@@ -80,8 +81,8 @@ export interface UserInfoEvent {
 
 export interface UserInfoProps {
   propData: UserInfoPropData;
-  propState: UserInfoStateData;
-  event: UserInfoEvent;
+  propState?: UserInfoStateData;  // 可选
+  event?: UserInfoEvent;          // 可选
 }
 
 // 组件本体具名导出
@@ -107,25 +108,29 @@ export default {
 
 ## 🔧 三段式代码规范
 
-### 四个必需Interface
+### 四个Interface规范
 
-1. **PropData规范**
+1. **PropData规范**（必需接口）
    - 仅用于平台向组件传递数据（单向输入）
    - 字段类型**必须为**: `string`、`number`、`boolean`
    - **禁止使用**: 数组、对象、联合类型、State<T>等
+   - **属性可选性**: 根据组件实际需求，部分属性可以为可选（使用`?`标记）
 
-2. **StateData规范**
+2. **StateData规范**（可选接口）
    - 仅用于组件向平台回传数据（双向绑定）
    - 字段类型**必须为**: `State<T>`（如State<number>、State<string>）
    - **禁止使用**: 基础类型或其他复杂类型
+   - **使用场景**: 纯展示组件通常不需要StateData
 
-3. **Event规范**
+3. **Event规范**（可选接口）
    - 仅用于声明组件对外可触发的事件
    - 字段类型**必须为**: 平台提供的`EventHandler`
    - **禁止使用**: 自定义函数类型
+   - **使用场景**: 纯展示组件通常不需要Event
 
-4. **Props规范**
-   - 必须包含propData、propState、event三个字段
+4. **Props规范**（必需接口）
+   - 必须包含propData字段
+   - propState和event字段根据组件需求可选
 
 ### 命名规范
 严格遵循：`组件名PropData`、`组件名StateData`、`组件名Event`、`组件名Props`
@@ -229,13 +234,20 @@ useCallback(() => {
 ## 📋 接口定义规范
 
 ### PropData接口规范
-1. **所有属性必须是必需的**（禁止可选属性`?`）
+1. **属性可选性**: 根据组件实际需求决定，核心属性为必需，辅助属性可为可选（使用`?`标记）
 2. **属性类型限制**: 只能使用`string`、`number`、`boolean`
 3. **使用驼峰命名法**，名称具有明确语义
+4. **默认值处理**: 有默认值的属性必须标记为可选（`?`），避免Zion平台强制用户填写
 
-### StateData接口规范
-1. **所有属性必须使用State<T>类型**
-2. **State<T>泛型参数**: 只能使用具体类型，不能使用联合类型或null
+### StateData接口规范（可选接口）
+1. **接口可选性**: 纯展示组件通常不需要StateData，交互组件根据需求定义
+2. **所有属性必须使用State<T>类型**
+3. **State<T>泛型参数**: 只能使用具体类型，不能使用联合类型或null
+
+### Event接口规范（可选接口）
+1. **接口可选性**: 纯展示组件通常不需要Event，交互组件根据需求定义
+2. **所有属性必须使用EventHandler类型**
+3. **事件命名**: 使用驼峰命名法，以on开头（如onClick、onSubmit）
 
 ### 数据模型接口规范
 1. **禁止嵌套可选对象**: 所有嵌套对象必须扁平化
@@ -244,18 +256,34 @@ useCallback(() => {
 
 ### 标准定义示例
 ```typescript
-// ✅ 正确的PropData
-export interface AccountManagerPropData {
-  pageSize: number;           // 必需属性
-  searchKeyword: string;      // 必需属性
-  sortField: string;          // 必需属性
+// ✅ 正确的PropData（支持可选属性和默认值）
+export interface ScatterChartPropData {
+  data: string;              // 必需：核心数据
+  title?: string;            // 可选：有默认值'散点图'
+  xAxisName?: string;        // 可选：有默认值'X轴'
+  yAxisName?: string;        // 可选：有默认值'Y轴'
+  themeColor?: string;       // 可选：有默认值'#5470c6'
+  showGrid?: string;         // 可选：有默认值'true'
+  showLegend?: string;       // 可选：有默认值'true'
 }
 
-// ✅ 正确的StateData
-export interface AccountManagerStateData {
-  currentPage: State<number>;     // State<T>类型
-  totalCount: State<number>;      // State<T>类型
-  accounts: State<Account[]>;     // State<T>类型
+// ✅ 正确的StateData（可选接口）
+export interface ScatterChartStateData {
+  selectedPoint?: State<any>;    // State<T>类型
+  chartInstance?: State<any>;    // State<T>类型
+}
+
+// ✅ 正确的Event（可选接口）
+export interface ScatterChartEvent {
+  onPointClick?: EventHandler;   // 可选事件
+  onPointHover?: EventHandler;   // 可选事件
+}
+
+// ✅ 正确的Props（灵活组合）
+export interface ScatterChartProps {
+  propData: ScatterChartPropData;
+  propState?: ScatterChartStateData;  // 可选
+  event?: ScatterChartEvent;          // 可选
 }
 
 // ✅ 正确的数据模型
@@ -282,6 +310,50 @@ import React from 'react';
 - 问题: `React is not defined`
 - 解决: 确保每个.tsx文件顶部导入React
 - 确保package.json中React为dependencies而非devDependencies
+
+## 🔧 默认值处理规范
+
+### 核心原则
+1. **有默认值的属性必须标记为可选**（使用`?`标记）
+2. **Zion平台根据TypeScript接口判断属性必填性**
+3. **避免用户被迫填写有默认值的属性**
+
+### 默认值处理模式
+```typescript
+// ✅ 正确：有默认值的属性标记为可选
+export interface ChartPropData {
+  data: string;              // 必需：核心数据
+  title?: string;            // 可选：有默认值
+  themeColor?: string;       // 可选：有默认值
+  showGrid?: string;         // 可选：有默认值
+}
+
+// 组件内部处理默认值
+const parseConfig = (propData: ChartPropData) => {
+  const title = propData.title || '默认标题';
+  const themeColor = propData.themeColor || '#5470c6';
+  const showGrid = propData.showGrid !== 'false';
+  
+  return { title, themeColor, showGrid };
+};
+```
+
+### 常见默认值类型
+1. **字符串默认值**: `title?: string` → `propData.title || '默认标题'`
+2. **数字默认值**: `pageSize?: number` → `propData.pageSize || 10`
+3. **布尔默认值**: `showGrid?: string` → `propData.showGrid !== 'false'`
+4. **颜色默认值**: `themeColor?: string` → `propData.themeColor || '#5470c6'`
+
+### 错误示例
+```typescript
+// ❌ 错误：有默认值但标记为必需
+export interface WrongPropData {
+  title: string;            // 错误：有默认值但标记为必需
+  themeColor: string;       // 错误：有默认值但标记为必需
+}
+
+// ❌ 错误：Zion平台会强制用户填写这些属性
+```
 
 ## 🛡️ 安全检查规范
 
@@ -339,8 +411,10 @@ functorz publish --verbose  # 发布
 ```
 
 ### 强制检查项
-- [ ] 所有PropData属性都是必需的（无`?`标记）
+- [ ] PropData核心属性为必需，有默认值的属性标记为可选（使用`?`标记）
+- [ ] StateData和Event接口根据组件需求可选定义
 - [ ] 所有StateData属性都使用`State<T>`类型
+- [ ] 所有Event属性都使用`EventHandler`类型
 - [ ] 所有数据模型字段都有具体类型（无`any`、`null`）
 - [ ] 所有嵌套对象都已扁平化处理
 - [ ] 所有useCallback依赖都不包含state变量
@@ -351,6 +425,7 @@ functorz publish --verbose  # 发布
 - [ ] 所有外部API调用都有安全检查
 - [ ] CSS Modules使用正确
 - [ ] React Hooks依赖数组设置正确
+- [ ] 有默认值的属性在组件内部正确处理
 
 ---
 

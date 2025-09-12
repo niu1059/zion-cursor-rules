@@ -25,16 +25,16 @@ description: Zion代码组件14步开发执行流程，包含环境配置、项�
 **步骤概览**:
 - 系统环境检测（Windows/macOS）
 - Node.js 及 npm 验证是否安装，未安装执行安装指令（v20.19.4）
-- Functorz CLI 验证是否安装，未安装执行安装指令（0.5.4）
-- tsx 验证是否安装，未安装执行安装指令
+- Functorz CLI 执行安装指令
+- tsx 执行安装指令
 - functorz CLI登录验证
 
 **执行逻辑**:
 1. **系统环境检测**: 使用`os.platform()`检测操作系统类型，区分Windows('win32')和macOS('darwin')，为后续安装命令选择正确的执行方式
 2. **Node.js版本验证与安装**: 执行`node --version`检查当前版本，必须匹配v20.19.4，版本不符则调用`installNode()`函数进行安装
 3. **npm镜像配置**: 执行`npm config set registry https://registry.npmmirror.com/`设置国内镜像源，提高依赖安装速度
-4. **tsx工具验证**: 先执行`npx tsx --version`检查是否已安装，如果失败则执行`npm i -g tsx`进行全局安装
-5. **Functorz CLI验证**: 先执行`functorz --help`检查当前版本，必须匹配 v0.5.4，版本不符或者验证失败未安装则执行`npm i -g functorz`进行全局安装
+4. **tsx工具安装**: 执行`npm i -g tsx`进行全局安装
+5. **Functorz CLI安装**: 执行`npm i -g functorz`进行全局安装
 6. **用户登录验证**: 执行`functorz signin ${email} ${password} -v`使用用户凭据登录，确保后续操作权限正常
 
 

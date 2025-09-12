@@ -138,7 +138,7 @@ description: Zion代码组件14步开发执行流程，包含环境配置、项�
 - 使用Framer Motion添加动画效果
 - 使用Lucide React提供图标支持
 - 结合现代CSS特性（Grid、Flexbox、CSS变量）
-- 根据开发计划决定是否引用第三方图标库
+- 根据开发计划决定是否引用第三方图标库（Echarts）
 
 **执行逻辑**:
 1. **工作目录确认**: 执行`process.chdir(projectPath)`确保在正确的Zion 初始化项目路径中，避免文件创建到错误位置

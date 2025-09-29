@@ -41,6 +41,7 @@ alwaysApply: true
 
 ### 🏗️ 项目规划
 - 项目名称: [项目名称+组件名称]
+- 应用平台: [小程序/web/小程序和web]
 - 组件名称: [组件名称（英文）]
 - 目标功能: [功能描述]
 - 数据需求: [是否需要项目数据字段]
@@ -59,8 +60,8 @@ alwaysApply: true
 8. 将组件按规范导出到项目内的主入口
 9. 代码合规校验
 10. 代码组件打包流程执行watch:build命令
-11. 代码组件首次发布
-12. 生成代码组件帮助文档与resources资源
+11. 生成代码组件帮助文档与resources资源
+12. 代码组件首次发布
 13. 结合 Zion 实时预览调试代码组件
 14. 代码组件发布上线
 
@@ -73,11 +74,12 @@ alwaysApply: true
 - 用户提出直接的操作请求
 
 **执行动作**：
+执行流程如下：
 ```markdown
 引用文件：
-- @zion-development-workflow.mdc (执行流程)
-- @zion-code-standards.mdc (代码规范)
-- @zion-graphql-schema-guide.mdc (需要时引用)
+- @zion-development-workflow.md (执行流程)
+- @zion-code-standards.md (代码规范)
+- @zion-graphql-schema-guide.md (需要时引用)
 
 执行14步标准开发流程
 ```

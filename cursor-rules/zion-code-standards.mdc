@@ -231,7 +231,7 @@ useCallback(() => {
 ## 📋 接口定义规范
 
 ### PropData接口规范
-1. **所有属性必须是必需的**（禁止可选属性`?`）
+1. **所有属性应设置合理默认值**（使用可选属性`?`，提升组件灵活性和易用性）
 2. **属性类型限制**: 只能使用`string`、`number`、`boolean`、`string[]`、`number[]`、`boolean[]`、`Array<string>`、`Array<number>`、`Array<boolean>`
 3. **数组类型约束**: 只支持基础类型的一维数组，不支持嵌套数组
 4. **数组语法**: 支持`T[]`和`Array<T>`两种语法，功能完全相同
@@ -249,21 +249,21 @@ useCallback(() => {
 ```typescript
 // ✅ 正确的数组使用
 export interface ChartComponentPropData {
-  dataLabels: string[];      // 数据标签数组 (T[] 语法)
-  dataValues: number[];      // 数据值数组 (T[] 语法)
-  enabledFeatures: boolean[]; // 功能开关数组 (T[] 语法)
-  colorPalette: Array<string>; // 颜色调色板数组 (Array<T> 语法)
-  priorityLevels: Array<number>; // 优先级数组 (Array<T> 语法)
-  statusFlags: Array<boolean>;   // 状态标志数组 (Array<T> 语法)
+  dataLabels?: string[];      // 数据标签数组 (T[] 语法)，可选
+  dataValues?: number[];      // 数据值数组 (T[] 语法)，可选
+  enabledFeatures?: boolean[]; // 功能开关数组 (T[] 语法)，可选
+  colorPalette?: Array<string>; // 颜色调色板数组 (Array<T> 语法)，可选
+  priorityLevels?: Array<number>; // 优先级数组 (Array<T> 语法)，可选
+  statusFlags?: Array<boolean>;   // 状态标志数组 (Array<T> 语法)，可选
 }
 
 // ✅ 组件内部安全处理
 const ChartComponent = (props: ChartComponentProps) => {
-  const { dataLabels, dataValues } = props.propData;
+  const { propData } = props;
   
-  // 安全处理空数组
-  const safeLabels = dataLabels || [];
-  const safeValues = dataValues || [];
+  // 安全处理可选数组属性，提供默认值
+  const safeLabels = propData.dataLabels || [];
+  const safeValues = propData.dataValues || [];
   
   // 确保数组长度一致
   const minLength = Math.min(safeLabels.length, safeValues.length);
@@ -289,13 +289,13 @@ const ChartComponent = (props: ChartComponentProps) => {
 ```typescript
 // ✅ 正确的PropData
 export interface AccountManagerPropData {
-  pageSize: number;           // 必需属性
-  searchKeyword: string;      // 必需属性
-  sortField: string;          // 必需属性
-  allowedRoles: string[];     // ✅ 字符串数组 (T[] 语法)
-  enabledFeatures: boolean[]; // ✅ 布尔数组 (T[] 语法)
-  priorityLevels: Array<number>; // ✅ 数字数组 (Array<T> 语法)
-  departmentIds: Array<string>;  // ✅ 字符串数组 (Array<T> 语法)
+  pageSize?: number;           // 可选属性，带默认值
+  searchKeyword?: string;      // 可选属性，带默认值
+  sortField?: string;          // 可选属性，带默认值
+  allowedRoles?: string[];     // ✅ 字符串数组 (T[] 语法)
+  enabledFeatures?: boolean[]; // ✅ 布尔数组 (T[] 语法)
+  priorityLevels?: Array<number>; // ✅ 数字数组 (Array<T> 语法)
+  departmentIds?: Array<string>;  // ✅ 字符串数组 (Array<T> 语法)
 }
 
 // ✅ 正确的StateData
@@ -374,6 +374,194 @@ import './style.module.scss';
 
 **注意**: 样式文件必须使用`style.module.scss`命名，确保CSS Modules正确工作。
 
+### 微信小程序样式规范
+
+#### CSS支持情况
+✅ **支持的CSS特性**：
+- **基本样式属性**：color、font-size、margin、padding、background-color等
+- **盒模型**：width、height、border、display等
+- **Flex布局**：display: flex、justify-content、align-items等
+- **部分CSS3属性**：border-radius、box-shadow、transform等
+- **动画**：@keyframes、animation等（需要添加-webkit-前缀）
+
+#### 小程序原生组件规范
+
+**基础视图容器 (View Container)**
+
+| 组件 | 核心用途与精简说明 |
+| :--- | :--- |
+| **`<view>`** | **最基础**的视图容器，相当于 HTML 中的 `div`，用于布局和样式控制。 |
+| **`<scroll-view>`** | **可滚动**的视图容器。需要设置 `scroll-y` 或 `scroll-x` 来指定滚动方向。 |
+| **`<swiper>`** | **滑块视图容器**，常用于图片轮播。其子组件应为 **`<swiper-item>`**。 |
+
+**基础内容 (Basic Content)**
+
+| 组件 | 核心用途与精简说明 |
+| :--- | :--- |
+| **`<text>`** | **文本**组件。只能在它内部嵌套 `<text>`。支持**长按选中** (selectable)。 |
+| **`<icon>`** | **图标**组件。用于显示**预设的图标**，需通过 `type` 属性指定图标类型。 |
+| **`<rich-text>`** | **富文本**组件。可显示**HTML 字符串** (通过 `nodes` 属性)，支持部分标签和样式。 |
+| **`<progress>`** | **进度条**组件。通过 `percent` 属性设置进度，可设置颜色和是否显示**百分比数值**。 |
+
+**表单组件 (Form Components)**
+
+| 组件 | 核心用途与精简说明 |
+| :--- | :--- |
+| **`<button>`** | **按钮**。可设置大小 (size)、类型 (type) 和是否禁用 (disabled)。支持**开放能力** (如获取用户信息)。 |
+| **`<input>`** | **单行文本输入框**。支持设置 `type` (如 text, number, password)。常用于收集用户输入。 |
+| **`<textarea>`** | **多行文本输入框**。用于长文本输入。 |
+| **`<radio-group>`** | **单选框组**。与 `<radio>` 配合使用，用于**单项选择**。 |
+| **`<checkbox-group>`** | **复选框组**。与 `<checkbox>` 配合使用，用于**多项选择**。 |
+| **`<picker>`** | **选择器**。从底部弹出的**通用选择器**。支持**普通选择器**、**时间**、**日期**和**城市选择**。 |
+| **`<switch>`** | **开关选择器**。用于**开关**状态的切换。 |
+| **`<slider>`** | **滑块选择器**。用于**范围**选择。 |
+| **`<form>`** | **表单**。用于**收集表单组件**的数据，并通过 `bindsubmit` 提交。 |
+
+**媒体组件 (Media Components)**
+
+| 组件 | 核心用途与精简说明 |
+| :--- | :--- |
+| **`<image>`** | **图片**。用于显示**网络**或**本地图片**。需设置 `src` 属性。支持 `mode` 属性设置**裁剪和缩放模式**。 |
+| **`<video>`** | **视频**。用于播放**视频文件**。 |
+| **`<camera>`** | **系统相机**。用于调用**系统相机**进行拍照或录像。 |
+
+**开放能力 (Open Capabilities)**
+
+| 组件 | 核心用途与精简说明 |
+| :--- | :--- |
+| **`<web-view>`** | **网页容器**。用于承载**H5 网页**，可加载外部链接。 |
+| **`<official-account>`**| **公众号关注组件**。在小程序内**引导用户关注**公众号。 |
+| **`<open-data>`** | **展示开放数据**。用于展示如**用户头像**、**昵称**等不需要授权的公开数据。 |
+| **`<ad>`** | **广告**组件。用于展示**小程序内置广告**。 |
+
+**导航 (Navigation)**
+
+| 组件 | 核心用途与精简说明 |
+| :--- | :--- |
+| **`<navigator>`** | **页面跳转**。用于**跳转**到应用内的其他小程序页面。通过 `url` 属性指定目标路径。 |
+
+**补充/其他 (Others)**
+
+| 组件 | 核心用途与精简说明 |
+| :--- | :--- |
+| **`<canvas>`** | **画布**。用于**绘图**，支持 2D/WebGL。 |
+| **`<map>`** | **地图**。用于显示**地图**，支持标记点和路线。 |
+| **`<live-player>`** | **直播**播放器。用于播放**实时直播流**。 |
+| **`<live-pusher>`** | **直播推流**。用于将**本地视频/音频**推送到直播服务。 |
+
+### 微信小程序代码组件开发特殊说明
+
+#### 前置条件
+- **小程序端与网页端代码组件库分离**
+- **小程序有主包/分包大小不超过 2MB 的限制**，注意代码组件库的大小
+
+#### 开发说明
+
+**1. 直接使用 HTML 组件**
+```javascript
+// 在小程序编译产物中，这段会变成 <view>Hello world</view>
+<div>Hello world</div>
+```
+
+**2. 直接使用 wx**
+```typescript
+// 1.在 src/typings/global.d.ts 中加入
+declare const wx: any;
+ 
+// 2.使用
+wx.createSelectorQuery()
+  .select("#xxx")
+  .boundingClientRect((rect: any) => {
+    // console.log(rect)
+   })
+   .exec();
+```
+
+**3. 使用 @tarojs/taro 和 @tarojs/components**
+```bash
+npm i @tarojs/taro@4.0.9 @tarojs/components@4.0.9
+```
+
+```typescript
+// 在 vite.config.ts 的 shared 中加入 @tarojs/taro 和 @tarojs/components
+export default defineConfig({
+  plugins: [
+    ...
+    federation({
+      ...
+      shared: [..., "@tarojs/taro", "@tarojs/components"],
+    }),
+  ],
+  ...
+});
+ 
+// 使用
+import Taro from '@tarojs/taro';
+import { ScrollView } from '@tarojs/components';
+ 
+Taro.createSelectorQuery()
+  .select("#xxx")
+  .boundingClientRect((rect: any) => {
+    // console.log(rect)
+   })
+   .exec();
+ 
+return <ScrollView>xxxx</ScrollView>
+```
+
+**4. 使用 taro-ui**
+```bash
+npm i taro-ui
+ 
+# 如遇依赖冲突可用：
+npm i taro-ui --legacy-peer-deps
+```
+
+```typescript
+import { AtCalendar } from "taro-ui";
+import "taro-ui/dist/style/components/calendar.scss";
+ 
+export interface CalendarPropData {}
+ 
+export interface CalendarEvent {}
+ 
+export interface CalendarStateData {}
+ 
+export interface CalendarProps {
+  event: CalendarEvent;
+  propData: CalendarPropData;
+  propState: CalendarStateData;
+}
+ 
+export function Calendar({}: CalendarProps) {
+  return <AtCalendar />;
+}
+```
+
+#### 注意事项
+- **如果使用了 @tarojs/taro 和 @tarojs/components 一定要加到 vite.config.shared 中**
+- **小程序端 vite.config.shared 目前仅支持**：
+  - react
+  - react-dom
+  - classname
+  - constate
+  - lodash
+  - dayjs
+  - @tarojs/taro
+  - @tarojs/components
+  - zvm-code-context
+- **实时预览不支持 Taro 相关的依赖**，如果有使用，请生成小程序后查看
+
+#### 调试说明
+如果代码组件逻辑相对比较复杂，需要本地调试：
+1. 下载微信开发者工具
+2. 根据 Taro 文档初始化一个空白项目
+3. 在 Taro 项目中开发代码组件，在微信开发者工具中调试
+
+#### 参考文档
+- **Taro**: https://docs.taro.zone/docs/
+- **微信小程序**: https://developers.weixin.qq.com/miniprogram/dev/framework/
+
 ## ✅ 发布前检查清单
 
 ### 代码质量检查
@@ -382,11 +570,11 @@ npx tsc --noEmit        # 类型检查
 npm run lint            # 代码规范检查
 npm run build           # 构建检查
 npm version patch       # 版本管理
-functorz publish --verbose  # 发布
+functorz dryrun         # 预发布测试
 ```
 
 ### 强制检查项
-- [ ] 所有PropData属性都是必需的（无`?`标记）
+- [ ] 所有PropData属性都设置了合理默认值（非必填项，提升组件灵活性）
 - [ ] 所有PropData数组类型都是基础类型的一维数组（支持`T[]`和`Array<T>`语法）
 - [ ] 所有StateData属性都使用`State<T>`类型
 - [ ] 所有数据模型字段都有具体类型（无`any`、`null`）

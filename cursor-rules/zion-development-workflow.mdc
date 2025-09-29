@@ -31,7 +31,7 @@ description: Zion代码组件14步开发执行流程，包含环境配置、项�
 
 **执行逻辑**:
 1. **系统环境检测**: 使用`os.platform()`检测操作系统类型，区分Windows('win32')和macOS('darwin')，为后续安装命令选择正确的执行方式
-2. **Node.js版本验证与安装**: 执行`node --version`检查当前版本，必须匹配v20.19.4，版本不符则调用`installNode()`函数进行安装
+2. **Node.js版本验证与安装**: 执行`node --version`检查当前版本，是否大于v20.19.4，版本不符则调用`installNode()`函数进行安装
 3. **npm镜像配置**: 执行`npm config set registry https://registry.npmmirror.com/`设置国内镜像源，提高依赖安装速度
 4. **tsx工具安装**: 执行`npm i -g tsx`进行全局安装
 5. **Functorz CLI安装**: 执行`npm i -g functorz`进行全局安装
@@ -235,8 +235,45 @@ description: Zion代码组件14步开发执行流程，包含环境配置、项�
 4. **后台服务启动**: 执行`screen -dmS watch-build npm run watch:build`使用screen会话管理构建监听服务，支持断线重连
 5. **服务状态验证**: 执行`sleep 3 && screen -list | grep "watch-build"`检查服务启动状态，确保构建监听功能正常工作
 
+### Step 11: 生成代码组件帮助文档与resources资源
 
-### Step 11: 代码组件测试发布（用于Zion编辑器调试）
+**目标**: 自动生成项目README.md和组件README.md并保存，然后创建resources资源文件
+
+**步骤概览**:
+- 生成项目根目录README.md
+- 生成组件README.md文档
+- 创建resources资源目录结构
+- 生成资源文件模板
+
+**执行逻辑**:
+1. **工作目录确认**: 执行`process.chdir(projectPath)`确保在正确的Zion初始化项目路径中
+2. **组件README.md生成**:
+   - 构建组件文档路径：`src/components/${componentName}/README.md`
+   - 生成完整的组件文档，包含以下章节：
+     - 组件简介：功能描述、技术特点
+     - 属性与事件说明：PropData、StateData、Event详细说明
+     - 平台配置：Zion平台相关配置说明
+     - GraphQL说明：数据查询相关说明（如适用）
+     - 媒体上传说明：文件上传字段说明（如适用）
+     - 样式自定义：CSS变量、主题配置说明
+     - 常见问题：FAQ和故障排除
+3. **项目README.md生成**: 
+   - 检查初始化项目根目录是否存在README.md，若存在则新增组件README.md文档中所有信息
+   - 若不存在则创建项目README.md
+   - 包含初始化项目目录下所有组件的README.md文档中信息
+4. **resources资源目录创建**:
+   - 检查`resources`目录是否存在，不存在则创建
+   - 创建组件资源子目录：`resources/${componentName}/` （保持与组件名称大小写一致）
+5. **资源文件模板生成**:
+   - 根据开发需求和组件功能特点，自行设计并渲染相应的SVG资源文件
+   - 创建`resources/icon.svg`：组件包图标模板（24x24），根据组件核心功能设计
+   - 创建`resources/${componentName}/icon.svg`：组件图标模板（72x54），体现组件特色
+   - 创建`resources/${componentName}/canvas.svg`：画布预览图模板（300x200），展示组件在画布中的效果
+   - 创建`resources/${componentName}/cover.svg`：市场封面图模板（200x150），用于插件市场展示
+   - 所有资源文件仅支持svg格式，严格遵循命名规范，内容需与组件功能高度匹配、风格简洁
+
+
+### Step 12: 代码组件测试发布（用于Zion编辑器调试）
 
 **目标**: 使用发布核心命令成功发布代码组件至 zion 组件库，只有成功发布至 zion 组件库一次才可以在 zion 编辑器内调试代码组件
 
@@ -250,53 +287,17 @@ description: Zion代码组件14步开发执行流程，包含环境配置、项�
 4. **遵循 zion 代码组件核心规范进行修复**
 
 
-### Step 12: 生成代码组件帮助文档与resources资源
 
-**目标**: 自动生成项目README.md和组件README.md并保存，然后创建resources资源文件
-
-**步骤概览**:
-- 生成项目根目录README.md
-- 生成组件README.md文档
-- 创建resources资源目录结构
-- 生成资源文件模板
-
-**执行逻辑**:
-1. **工作目录确认**: 执行`process.chdir(projectPath)`确保在正确的Zion初始化项目路径中
-2. **项目README.md生成**: 
-   - 检查初始化项目根目录是否存在README.md，若存在则修改内容
-   - 若不存在则创建基础项目说明文档
-   - 包含项目组件包简介、项目内所有组件简介信息
-3. **组件README.md生成**:
-   - 构建组件文档路径：`src/components/${componentName}/README.md`
-   - 生成完整的组件文档，包含以下章节：
-     - 组件简介：功能描述、技术特点
-     - 属性与事件说明：PropData、StateData、Event详细说明
-     - 平台配置：Zion平台相关配置说明
-     - GraphQL说明：数据查询相关说明（如适用）
-     - 媒体上传说明：文件上传字段说明（如适用）
-     - 样式自定义：CSS变量、主题配置说明
-     - 常见问题：FAQ和故障排除
-     - 版本维护：更新日志和版本信息
-4. **resources资源目录创建**:
-   - 检查`resources`目录是否存在，不存在则创建
-   - 创建组件资源子目录：`resources/${componentName.toLowerCase()}/`
-5. **资源文件模板生成**:
-   - 根据开发需求和组件功能特点，自行设计并渲染相应的SVG资源文件
-   - 创建`resources/icon.svg`：组件包图标模板（24x24），根据组件核心功能设计
-   - 创建`resources/${componentName.toLowerCase()}/icon.svg`：组件图标模板（72x54），体现组件特色
-   - 创建`resources/${componentName.toLowerCase()}/canvas.svg`：画布预览图模板（300x200），展示组件在画布中的效果
-   - 创建`resources/${componentName.toLowerCase()}/cover.svg`：市场封面图模板（200x150），用于插件市场展示
-   - 所有资源文件仅支持svg格式，严格遵循命名规范，内容需与组件功能高度匹配、风格简洁
 
 ### Step 13: 在预览模式下结合 Zion 实时预览调试并修复代码组件（仅修复不发布）
 
-**目标**: 执行预览命令，提示用户在 zion 编辑器内调试代码组件，并修复用户提交的问题，修复完成后无需再执行其他命令
+**目标**: 执行预览命令，提示用户在 zion 编辑器内调试代码组件，并修复用户提交的问题，修复完成后无需再执行其他命令，若为微信小程序代码组件，需要额外提示用户更新预览在手机上测试或者在微信开发者工具内测试
 
 **步骤概览**:
-- 提示用户在Zion编辑器中添加组件
 - 清理旧预览服务确保端口可用
 - 使用screen管理preview服务
 - 验证预览服务状态
+- 提示用户在Zion编辑器中添加组件，小程序组件额外提示用户更新预览在手机上测试或者在微信开发者工具内测试
 - 用户报错修复流程（用户未确认代码组件无问题绝对禁止自动发布）
 
 **执行逻辑**:
@@ -305,9 +306,6 @@ description: Zion代码组件14步开发执行流程，包含环境配置、项�
    - 执行`screen -S preview -X quit`终止旧预览服务
    - 执行`lsof -ti:6327 | xargs kill -9`释放端口6327资源，避免端口冲突
 3. **预览服务启动**: 执行`screen -dmS preview npm run preview`使用screen会话管理预览服务，提供稳定的HTTP访问服务
-4. **服务状态验证**: 
-   - 执行`curl -s -o /dev/null -w "%{http_code}" http://localhost:6327`检查HTTP响应
-   - 执行`screen -list | grep "preview"`检查进程状态
 5. **端口范围控制**: 确保预览服务运行在指定的端口范围内（6327-6335）
 6. **修复流程**: 分析错误 → 修复代码（修复完成禁止发布） → 等待用户验证
 
@@ -326,7 +324,7 @@ description: Zion代码组件14步开发执行流程，包含环境配置、项�
 **执行逻辑**:
 1. **版本冲突处理**: 遇到`REPO_VERSION_DUPLICATE`错误时，执行`npm version patch`升级版本号
 2. **版本号递增**: 使用patch级别递增版本号，确保每次发布都有唯一版本标识
-3. **正式发布执行**: 执行`functorz publish_compatible --verbose`将组件正式发布到Zion平台
+3. **正式发布执行**: 执行`functorz publish --verbose`将组件正式发布到Zion平台
 4. **错误处理机制**: 遇到其他类型错误时，根据错误信息进行相应修复后，修复完成后必须等待用户确认才能重新发布
 
 
